@@ -1,0 +1,239 @@
+/* The field is the box; the calendar trigger and the clear button live inside it as
+   siblings, so no interactive element ends up nested in another. */
+.field {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  height: 36px;
+  padding-right: 5px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  transition: border-color 120ms var(--ease), background 120ms var(--ease);
+}
+
+.field:hover {
+  border-color: var(--control-hi);
+  background: var(--surface-hi);
+}
+
+.fieldActive {
+  border-color: var(--brass-line);
+}
+
+.fieldOpen {
+  border-color: var(--brass-line);
+  background: var(--surface-hi);
+}
+
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 34px;
+  padding: 0 6px 0 9px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-mid);
+  font-size: 12.5px;
+  white-space: nowrap;
+  transition: color 120ms var(--ease);
+}
+
+.fieldActive .trigger {
+  color: var(--text);
+}
+
+.triggerIcon {
+  display: flex;
+  color: var(--text-low);
+}
+
+.triggerValue {
+  letter-spacing: 0.01em;
+}
+
+.triggerPlaceholder {
+  color: var(--text-low);
+}
+
+.triggerClear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-low);
+  transition: color 110ms linear, background 110ms linear;
+}
+
+.triggerClear:hover {
+  color: var(--text);
+  background: var(--control);
+}
+
+/* ── Popover ───────────────────────────────────────────────────────────── */
+
+.popover {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 40;
+  width: 262px;
+  padding: 12px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg);
+  background: var(--surface-hi);
+  box-shadow: var(--shadow-pop);
+  animation: popIn 140ms var(--ease) both;
+}
+
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.popoverHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.monthLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  text-transform: capitalize;
+  letter-spacing: -0.005em;
+}
+
+.monthNav {
+  display: flex;
+  gap: 2px;
+}
+
+.navButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-mid);
+  transition: color 110ms linear, background 110ms linear;
+}
+
+.navButton:hover {
+  color: var(--text);
+  background: var(--control);
+}
+
+.weekHead {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  margin-bottom: 4px;
+}
+
+.weekDay {
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--text-low);
+  text-transform: uppercase;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.day {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 30px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-mid);
+  font-size: 12px;
+  transition: background 110ms linear, color 110ms linear;
+}
+
+.day:hover {
+  background: var(--control);
+  color: var(--text);
+}
+
+.dayOutside {
+  color: var(--text-low);
+  opacity: 0.5;
+}
+
+.dayToday {
+  border-color: var(--hairline);
+  color: var(--text);
+}
+
+.daySelected {
+  background: var(--brass);
+  border-color: var(--brass);
+  color: #1a1204;
+  font-weight: 500;
+}
+
+.daySelected:hover {
+  background: var(--brass-hi);
+  color: #1a1204;
+}
+
+.popoverFoot {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--hairline);
+}
+
+.footButton {
+  flex: 1;
+  height: 28px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-mid);
+  font-size: 12px;
+  transition: color 110ms linear, background 110ms linear, border-color 110ms linear;
+}
+
+.footButton:hover {
+  color: var(--text);
+  background: var(--control);
+  border-color: var(--control-hi);
+}
+
+@media (max-width: 480px) {
+  .popover {
+    left: auto;
+    right: 0;
+  }
+}

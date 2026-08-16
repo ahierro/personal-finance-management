@@ -1,0 +1,681 @@
+/* Full-height layout: only the table scrolls, the controls stay put. */
+.shell {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  min-height: 100dvh;
+}
+
+/* ── Masthead ──────────────────────────────────────────────────────────── */
+
+.masthead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: var(--header-height);
+  flex: 0 0 var(--header-height);
+  padding: 0 20px;
+  border-bottom: 1px solid var(--hairline);
+  background: var(--surface);
+}
+
+.wordmark {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  min-width: 0;
+}
+
+.wordmarkTick {
+  width: 3px;
+  height: 15px;
+  background: var(--brass);
+  border-radius: 1px;
+  transform: translateY(2px);
+}
+
+.wordmarkTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+.wordmarkSub {
+  font-size: 11px;
+  color: var(--text-low);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.mastheadSpacer {
+  flex: 1;
+}
+
+/* ── Language picker ───────────────────────────────────────────────────── */
+
+.languageField {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.languageIcon {
+  position: absolute;
+  left: 9px;
+  display: flex;
+  color: var(--text-low);
+  pointer-events: none;
+}
+
+.languageSelect {
+  height: 34px;
+  padding: 0 26px 0 30px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background-color: transparent;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%235f6b7b' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 9px center;
+  color: var(--text-mid);
+  font-size: 13px;
+  appearance: none;
+  transition: color 120ms var(--ease), background-color 120ms var(--ease), border-color 120ms var(--ease);
+}
+
+.languageSelect:hover {
+  color: var(--text);
+  background-color: var(--control);
+  border-color: var(--hairline);
+}
+
+/* ── Buttons ───────────────────────────────────────────────────────────── */
+
+.primaryButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 34px;
+  padding: 0 14px;
+  border: 1px solid var(--brass);
+  border-radius: var(--radius-md);
+  background: var(--brass);
+  color: #1a1204;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  white-space: nowrap;
+  transition: background 120ms var(--ease), border-color 120ms var(--ease);
+}
+
+.primaryButton:hover {
+  background: var(--brass-hi);
+  border-color: var(--brass-hi);
+}
+
+.ghostButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-mid);
+  font-size: 13px;
+  white-space: nowrap;
+  transition: color 120ms var(--ease), border-color 120ms var(--ease), background 120ms var(--ease);
+}
+
+.ghostButton:hover {
+  color: var(--text);
+  border-color: var(--control-hi);
+  background: var(--control);
+}
+
+/* ── Filter bar ────────────────────────────────────────────────────────── */
+
+.filterBar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 0 0 auto;
+  min-height: var(--filters-height);
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--hairline);
+  background: var(--bg);
+  flex-wrap: wrap;
+}
+
+/* Brass thread that runs while the server puts the new page together. */
+.progress {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 1px;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.progressBeam {
+  width: 32%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, var(--brass), transparent);
+  animation: sweep 1s var(--ease) infinite;
+}
+
+@keyframes sweep {
+  from {
+    transform: translateX(-110%);
+  }
+  to {
+    transform: translateX(420%);
+  }
+}
+
+.search {
+  position: relative;
+  flex: 1 1 260px;
+  min-width: 200px;
+  max-width: 460px;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 11px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-low);
+  pointer-events: none;
+  display: flex;
+}
+
+.searchInput {
+  width: 100%;
+  height: 36px;
+  padding: 0 32px 0 34px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 13px;
+  transition: border-color 120ms var(--ease), background 120ms var(--ease);
+}
+
+.searchInput::placeholder {
+  color: var(--text-low);
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: var(--brass-line);
+  background: var(--surface-hi);
+}
+
+.searchClear {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-low);
+}
+
+.searchClear:hover {
+  color: var(--text);
+  background: var(--control);
+}
+
+.filterDivider {
+  width: 1px;
+  height: 22px;
+  background: var(--hairline);
+}
+
+.filterLabel {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-low);
+}
+
+.filterSpacer {
+  flex: 1;
+}
+
+.filterCount {
+  font-size: 12px;
+  color: var(--text-mid);
+  white-space: nowrap;
+}
+
+.filterCountStrong {
+  color: var(--text);
+}
+
+/* ── Table ─────────────────────────────────────────────────────────────── */
+
+.tableScroll {
+  flex: 1 1 auto;
+  overflow: auto;
+  background: var(--bg);
+}
+
+.table {
+  width: 100%;
+  min-width: 880px;
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: fixed;
+}
+
+.headCell {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding: 0 14px;
+  height: 38px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--hairline);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--text-low);
+  text-align: left;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.headCellRight {
+  text-align: right;
+}
+
+.colDate {
+  width: 128px;
+}
+
+.colReceipt {
+  width: 132px;
+}
+
+.colEntity {
+  width: 152px;
+}
+
+.colAmount {
+  width: 208px;
+}
+
+.colActions {
+  width: 86px;
+}
+
+.row {
+  transition: background 90ms linear;
+}
+
+.row:hover {
+  background: var(--surface);
+}
+
+.cell {
+  padding: 0 14px;
+  height: 40px;
+  border-bottom: 1px solid var(--hairline-soft);
+  font-size: 13px;
+  color: var(--text-mid);
+  vertical-align: middle;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cellDate {
+  color: var(--text);
+}
+
+.cellTime {
+  margin-left: 7px;
+  color: var(--text-low);
+  font-size: 12px;
+}
+
+.cellDescription {
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cellEmpty {
+  color: var(--text-low);
+}
+
+/* The amount: a monospaced column, the sign carried by colour, and a background bar
+   proportional to the largest amount of that same currency within the page. */
+.cellAmount {
+  position: relative;
+  padding: 0 14px;
+  height: 40px;
+  border-bottom: 1px solid var(--hairline-soft);
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.amountBar {
+  position: absolute;
+  top: 6px;
+  bottom: 6px;
+  right: 0;
+  width: var(--bar-width);
+  border-radius: 2px 0 0 2px;
+  animation: barGrow 560ms var(--ease) both;
+}
+
+.amountBarDebit {
+  background: linear-gradient(90deg, transparent, var(--debit-bar));
+}
+
+.amountBarCredit {
+  background: linear-gradient(90deg, transparent, var(--credit-bar));
+}
+
+@keyframes barGrow {
+  from {
+    width: 0;
+  }
+  to {
+    width: var(--bar-width);
+  }
+}
+
+.amountValue {
+  position: relative;
+  font-size: 13.5px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.amountDebit {
+  color: var(--debit);
+}
+
+.amountCredit {
+  color: var(--credit);
+}
+
+.amountCurrency {
+  position: relative;
+  margin-left: 8px;
+  font-size: 10.5px;
+  color: var(--text-low);
+  letter-spacing: 0.04em;
+}
+
+.cellActions {
+  padding: 0 10px 0 0;
+  height: 40px;
+  border-bottom: 1px solid var(--hairline-soft);
+  text-align: right;
+}
+
+.rowActions {
+  display: inline-flex;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 110ms linear;
+}
+
+.row:hover .rowActions,
+.rowActions:focus-within {
+  opacity: 1;
+}
+
+.iconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-low);
+  transition: color 110ms linear, background 110ms linear;
+}
+
+.iconButton:hover {
+  color: var(--text);
+  background: var(--control);
+}
+
+.iconButtonDanger:hover {
+  color: var(--debit);
+  background: rgba(229, 109, 124, 0.1);
+}
+
+/* Always visible where there is no hover, for touch screens. */
+@media (hover: none) {
+  .rowActions {
+    opacity: 1;
+  }
+}
+
+/* ── Empty and error states ────────────────────────────────────────────── */
+
+.placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 72px 24px;
+  text-align: center;
+}
+
+.placeholderMark {
+  width: 34px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--brass);
+  opacity: 0.75;
+}
+
+.placeholderTitle {
+  margin: 4px 0 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.placeholderText {
+  margin: 0;
+  max-width: 46ch;
+  font-size: 13px;
+  color: var(--text-mid);
+  line-height: 1.65;
+}
+
+.placeholderCode {
+  display: block;
+  margin-top: 14px;
+  padding: 10px 14px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--text-mid);
+  font-size: 12px;
+  text-align: left;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.placeholderActions {
+  margin-top: 10px;
+}
+
+/* ── Footer with pagination ────────────────────────────────────────────── */
+
+.footBar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: 0 0 auto;
+  padding: 10px 20px;
+  border-top: 1px solid var(--hairline);
+  background: var(--surface);
+  flex-wrap: wrap;
+}
+
+.footRange {
+  font-size: 12px;
+  color: var(--text-mid);
+  white-space: nowrap;
+}
+
+.footRangeStrong {
+  color: var(--text);
+}
+
+.footSpacer {
+  flex: 1;
+}
+
+.sizeField {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sizeLabel {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-low);
+  white-space: nowrap;
+}
+
+.select {
+  height: 30px;
+  padding: 0 26px 0 10px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm);
+  background-color: var(--control);
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%235f6b7b' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 9px center;
+  color: var(--text);
+  font-size: 12px;
+  appearance: none;
+  transition: border-color 120ms var(--ease);
+}
+
+.select:hover {
+  border-color: var(--control-hi);
+}
+
+.pager {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.pageButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 30px;
+  height: 30px;
+  padding: 0 7px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-mid);
+  font-size: 12px;
+  transition: color 110ms linear, background 110ms linear, border-color 110ms linear;
+}
+
+.pageButton:hover:not(:disabled) {
+  color: var(--text);
+  background: var(--control);
+}
+
+.pageButton:disabled {
+  color: var(--text-low);
+  opacity: 0.45;
+  cursor: default;
+}
+
+.pageButtonActive {
+  border-color: var(--brass-line);
+  background: var(--brass-dim);
+  color: var(--brass-hi);
+}
+
+.pageButtonActive:hover:not(:disabled) {
+  background: var(--brass-dim);
+  color: var(--brass-hi);
+}
+
+.pageGap {
+  padding: 0 2px;
+  color: var(--text-low);
+  font-size: 12px;
+  user-select: none;
+}
+
+@media (max-width: 900px) {
+  .wordmarkSub {
+    display: none;
+  }
+
+  .filterCount {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .masthead,
+  .filterBar,
+  .footBar {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .search {
+    max-width: none;
+    flex-basis: 100%;
+  }
+
+  .filterDivider {
+    display: none;
+  }
+
+  /* The footer folds into two rows: the range on top, size picker and pager below.
+     The picker's label goes: the combo itself already says what it does. */
+  .footBar {
+    gap: 10px;
+  }
+
+  .footRange {
+    flex-basis: 100%;
+  }
+
+  .sizeLabel {
+    display: none;
+  }
+}
