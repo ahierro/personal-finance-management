@@ -39,7 +39,16 @@ export function useLedger(): LedgerContextValue {
  * The dialogs are mounted once here rather than once per row, and every navigation goes
  * through the same place so the loading indicator has a single source of truth.
  */
-export function MovementLedgerProvider({ children }: { readonly children: React.ReactNode }) {
+export function MovementLedgerProvider({
+  entities,
+  currencies,
+  children,
+}: {
+  /** The entities and currencies in use, handed to the form as suggestions. */
+  readonly entities: readonly string[];
+  readonly currencies: readonly string[];
+  readonly children: React.ReactNode;
+}) {
   const router = useRouter();
   const [dialog, setDialog] = useState<OpenDialog>({ kind: 'none' });
   const [navigating, startTransition] = useTransition();
@@ -79,9 +88,23 @@ export function MovementLedgerProvider({ children }: { readonly children: React.
     <LedgerContext.Provider value={value}>
       {children}
 
-      {dialog.kind === 'create' && <MovementDialog movement={null} onClose={close} onSaved={refreshAndClose} />}
+      {dialog.kind === 'create' && (
+        <MovementDialog
+          movement={null}
+          entities={entities}
+          currencies={currencies}
+          onClose={close}
+          onSaved={refreshAndClose}
+        />
+      )}
       {dialog.kind === 'edit' && (
-        <MovementDialog movement={dialog.movement} onClose={close} onSaved={refreshAndClose} />
+        <MovementDialog
+          movement={dialog.movement}
+          entities={entities}
+          currencies={currencies}
+          onClose={close}
+          onSaved={refreshAndClose}
+        />
       )}
       {dialog.kind === 'delete' && (
         <DeleteMovementDialog movement={dialog.movement} onClose={close} onDeleted={refreshAndClose} />

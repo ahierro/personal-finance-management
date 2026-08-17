@@ -9,6 +9,8 @@ export const SearchParam = {
   q: 'q',
   from: 'from',
   to: 'to',
+  entity: 'entity',
+  currency: 'currency',
   page: 'page',
   size: 'size',
 } as const;
@@ -39,6 +41,8 @@ export interface LedgerHrefState {
   readonly q: string;
   readonly from: string;
   readonly to: string;
+  readonly entity: string;
+  readonly currency: string;
   readonly page: number;
   readonly size: number;
 }
@@ -54,6 +58,12 @@ export function buildLedgerHref(state: LedgerHrefState): string {
   }
   if (state.to !== '') {
     params.set(SearchParam.to, state.to);
+  }
+  if (state.entity !== '') {
+    params.set(SearchParam.entity, state.entity);
+  }
+  if (state.currency !== '') {
+    params.set(SearchParam.currency, state.currency);
   }
   if (state.page > 1) {
     params.set(SearchParam.page, String(state.page));

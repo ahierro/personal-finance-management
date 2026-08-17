@@ -44,6 +44,17 @@ export class MovementMongoRepository {
     return collection.countDocuments(filter);
   }
 
+  /**
+   * The values a field takes across the collection, with no duplicates. `distinct` runs
+   * inside MongoDB and walks the field's index where there is one, so the browser never
+   * receives a row just to find out which entities exist.
+   */
+  async distinctValues(field: 'bankEntityId' | 'currency'): Promise<string[]> {
+    const collection = await this.collection();
+    const values = await collection.distinct(field);
+    return values.filter((value): value is string => typeof value === 'string' && value.length > 0);
+  }
+
   async insert(document: MovementDocument): Promise<ObjectId> {
     const collection = await this.collection();
     const result = await collection.insertOne(document as MovementEntity);

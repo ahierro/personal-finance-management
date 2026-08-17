@@ -87,11 +87,27 @@ export function ChevronRightIcon({ size = 14 }: IconProps) {
   );
 }
 
+export function ChevronDownIcon({ size = 14 }: IconProps) {
+  return (
+    <svg {...base(size)}>
+      <path d="M3.6 6.2L8 10.6l4.4-4.4" />
+    </svg>
+  );
+}
+
 export function AlertIcon({ size = 16 }: IconProps) {
   return (
     <svg {...base(size)}>
       <circle cx="8" cy="8" r="5.6" />
       <path d="M8 5.2v3.4M8 10.8h.01" />
+    </svg>
+  );
+}
+
+export function FunnelIcon({ size = 14 }: IconProps) {
+  return (
+    <svg {...base(size)}>
+      <path d="M2.6 3.2h10.8l-4.2 5v4.3l-2.4 1.3V8.2z" />
     </svg>
   );
 }

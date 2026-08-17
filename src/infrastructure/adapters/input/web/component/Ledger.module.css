@@ -8,15 +8,34 @@
 
 /* ── Masthead ──────────────────────────────────────────────────────────── */
 
+/* The bars keep their background and their rule running the whole way across; it is the
+   row inside them that is held to the width of the table's columns and centred, so the
+   header, the filters, the table and the footer all line up on the same two edges.
+   `--ledger-width` is published by LedgerShell and follows the columns as they are
+   hidden or dragged. Past that width the bar simply fills what it has. */
+.barInner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  width: 100%;
+  max-width: var(--ledger-width, 1090px);
+  margin-inline: auto;
+}
+
 .masthead {
   display: flex;
   align-items: center;
-  gap: 12px;
   height: var(--header-height);
   flex: 0 0 var(--header-height);
   padding: 0 20px;
   border-bottom: 1px solid var(--hairline);
   background: var(--surface);
+}
+
+.masthead .barInner {
+  gap: 12px;
+  flex-wrap: nowrap;
 }
 
 .wordmark {
@@ -141,14 +160,11 @@
 .filterBar {
   position: relative;
   display: flex;
-  align-items: center;
-  gap: 10px;
   flex: 0 0 auto;
   min-height: var(--filters-height);
   padding: 12px 20px;
   border-bottom: 1px solid var(--hairline);
   background: var(--bg);
-  flex-wrap: wrap;
 }
 
 /* Brass thread that runs while the server puts the new page together. */
@@ -251,8 +267,116 @@
   color: var(--text-low);
 }
 
-.filterSpacer {
-  flex: 1;
+/* ── Value filters ─────────────────────────────────────────────────────────
+   Built rather than a native <select>, so the list can be the same rounded panel the
+   column picker and the form's suggestions use instead of the square box the browser
+   draws for itself. Sized to sit level with the search box and the date fields. */
+
+.filterSelectField {
+  position: relative;
+  display: inline-flex;
+  min-width: 182px;
+}
+
+.filterSelect {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  height: 36px;
+  padding: 0 9px 0 11px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--text-low);
+  font-size: 12.5px;
+  text-align: left;
+  transition: border-color 120ms var(--ease), background 120ms var(--ease), color 120ms var(--ease);
+}
+
+.filterSelect:hover {
+  border-color: var(--control-hi);
+  background: var(--surface-hi);
+}
+
+/* Carrying a value is worth seeing without reading: the brass line marks the filter as
+   on, exactly as the date fields do. */
+.filterSelectActive {
+  border-color: var(--brass-line);
+}
+
+.filterSelectOpen {
+  border-color: var(--brass-line);
+  background: var(--surface-hi);
+}
+
+/* Nothing chosen yet: muted, the way a placeholder reads in the form. */
+.filterSelectPlaceholder {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-low);
+}
+
+/* Chosen: bright, so the eye lands on the filters that are actually doing something. */
+.filterSelectValue {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text);
+  letter-spacing: 0.01em;
+}
+
+.filterSelectList {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 30;
+  max-height: 246px;
+  margin: 0;
+  padding: 4px;
+  overflow-y: auto;
+  list-style: none;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-pop);
+  animation: popIn 130ms var(--ease) both;
+}
+
+.filterSelectOption {
+  padding: 7px 9px;
+  border-radius: var(--radius-sm);
+  color: var(--text-mid);
+  font-size: 12.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+
+/* The "all" row is the absence of a filter, and reads like one. */
+.filterSelectOptionAll {
+  color: var(--text-low);
+}
+
+.filterSelectOptionActive {
+  background: var(--control);
+  color: var(--text);
+}
+
+.filterSelectOption[aria-selected='true'] {
+  color: var(--brass-hi);
+}
+
+/* Pushed to the far end, and kept as one block so a wrap moves both together. */
+.filterTrail {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
 }
 
 .filterCount {
@@ -265,22 +389,179 @@
   color: var(--text);
 }
 
+/* ── Column picker ─────────────────────────────────────────────────────── */
+
+.columnPicker {
+  position: relative;
+  display: inline-flex;
+}
+
+.columnButton {
+  position: relative;
+  height: 36px;
+}
+
+.columnButtonOpen {
+  color: var(--text);
+  border-color: var(--brass-line);
+  background: var(--control);
+}
+
+/* A dot rather than a number: the point is that something is off, not how many. */
+.columnButtonMark {
+  position: absolute;
+  top: 6px;
+  right: 7px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--brass);
+}
+
+.columnPopover {
+  position: absolute;
+  top: calc(100% + 7px);
+  right: 0;
+  z-index: 30;
+  width: 218px;
+  padding: 12px 12px 10px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-pop);
+  animation: popIn 130ms var(--ease) both;
+}
+
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.columnPopoverTitle {
+  margin: 0 0 8px;
+  padding: 0 4px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--text-low);
+}
+
+.columnList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.columnOption {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 4px;
+  border-radius: var(--radius-sm);
+  color: var(--text-mid);
+  font-size: 13px;
+  cursor: pointer;
+  transition: color 110ms linear, background 110ms linear;
+}
+
+.columnOption:hover {
+  color: var(--text);
+  background: var(--control);
+}
+
+/* The last column standing: still legible, just not something that can be switched off. */
+.columnOptionLocked {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.columnOptionLocked:hover {
+  color: var(--text-mid);
+  background: transparent;
+}
+
+.columnCheckbox {
+  width: 14px;
+  height: 14px;
+  accent-color: var(--brass);
+  cursor: inherit;
+}
+
+.columnPopoverFoot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding-top: 9px;
+  border-top: 1px solid var(--hairline-soft);
+}
+
+.columnHint {
+  flex: 1;
+  font-size: 10.5px;
+  line-height: 1.35;
+  color: var(--text-low);
+}
+
+.columnReset {
+  padding: 4px 8px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-mid);
+  font-size: 11.5px;
+  white-space: nowrap;
+  transition: color 110ms linear, border-color 110ms linear, background 110ms linear;
+}
+
+.columnReset:hover:not(:disabled) {
+  color: var(--text);
+  border-color: var(--control-hi);
+  background: var(--control);
+}
+
+.columnReset:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
 /* ── Table ─────────────────────────────────────────────────────────────── */
 
 .tableScroll {
   flex: 1 1 auto;
   overflow: auto;
   background: var(--bg);
+  /* The vertical scrollbar is reserved on both flanks, so the middle of this box is the
+     middle of the screen: without it the centred table sits half a scrollbar to the left
+     of the bars above and below, which is exactly the kind of gap the eye catches. */
+  scrollbar-gutter: stable both-edges;
 }
 
+/* The table spans the box and `fixed` gives every column exactly the width it was told,
+   with no regard for how long the text inside is — which is what lets a column be dragged
+   narrower than its own content. The slack is taken by the two filler columns instead. */
 .table {
   width: 100%;
-  min-width: 880px;
   border-collapse: separate;
   border-spacing: 0;
   table-layout: fixed;
 }
 
+/* One on each flank, no width of their own: fixed layout splits whatever is left over
+   equally between them, which centres the real columns. When the columns outgrow the
+   viewport both collapse to nothing and the table scrolls from its left edge. */
+.colFiller {
+  width: auto;
+}
+
+/* `sticky` also makes the cell the anchor the resize grip positions itself against. */
 .headCell {
   position: sticky;
   top: 0;
@@ -296,31 +577,99 @@
   color: var(--text-low);
   text-align: left;
   white-space: nowrap;
+  overflow: hidden;
   user-select: none;
+}
+
+/* Clipped rather than pushing the column wider than the reader asked for. */
+.headCellLabel {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .headCellRight {
   text-align: right;
 }
 
+/* Each width is a custom property with the default as its fallback, so a column the
+   reader has never dragged still measures what the design intended. The properties are
+   set on the scrolling box by LedgerTableViewport. */
 .colDate {
-  width: 128px;
+  width: var(--col-date-width, 172px);
+}
+
+.colDescription {
+  width: var(--col-description-width, 340px);
 }
 
 .colReceipt {
-  width: 132px;
+  width: var(--col-receipt-width, 132px);
 }
 
 .colEntity {
-  width: 152px;
+  width: var(--col-entity-width, 152px);
 }
 
 .colAmount {
-  width: 208px;
+  width: var(--col-amount-width, 208px);
 }
 
 .colActions {
   width: 86px;
+}
+
+/* ── Hidden columns ────────────────────────────────────────────────────────
+   The scrolling box lists what is off in `data-hidden-columns`; `~=` matches one word of
+   that list. Hiding the cells rather than a <col> is what works across browsers. */
+
+.tableScroll[data-hidden-columns~='date'] [data-column='date'],
+.tableScroll[data-hidden-columns~='description'] [data-column='description'],
+.tableScroll[data-hidden-columns~='receipt'] [data-column='receipt'],
+.tableScroll[data-hidden-columns~='entity'] [data-column='entity'],
+.tableScroll[data-hidden-columns~='amount'] [data-column='amount'] {
+  display: none;
+}
+
+/* ── Resize grip ───────────────────────────────────────────────────────────── */
+
+.resizeHandle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 11px;
+  height: 100%;
+  cursor: col-resize;
+  touch-action: none;
+}
+
+.resizeHandleLine {
+  width: 1px;
+  height: 16px;
+  border-radius: 1px;
+  background: var(--hairline);
+  transition: background 110ms linear, height 110ms var(--ease);
+}
+
+.resizeHandle:hover .resizeHandleLine,
+.resizeHandle:focus-visible .resizeHandleLine,
+.resizeHandleActive .resizeHandleLine {
+  height: 100%;
+  background: var(--brass);
+}
+
+.resizeHandle:focus-visible {
+  outline: none;
+}
+
+/* While a column is being dragged the pointer owns the screen: no text gets selected and
+   the cursor stays the same wherever it wanders. */
+.resizeHandleActive {
+  cursor: col-resize;
 }
 
 .row {
@@ -364,10 +713,9 @@
   color: var(--text-low);
 }
 
-/* The amount: a monospaced column, the sign carried by colour, and a background bar
-   proportional to the largest amount of that same currency within the page. */
+/* The amount: a monospaced column with the sign carried by colour, on the same plain
+   background as every other cell. */
 .cellAmount {
-  position: relative;
   padding: 0 14px;
   height: 40px;
   border-bottom: 1px solid var(--hairline-soft);
@@ -376,35 +724,7 @@
   overflow: hidden;
 }
 
-.amountBar {
-  position: absolute;
-  top: 6px;
-  bottom: 6px;
-  right: 0;
-  width: var(--bar-width);
-  border-radius: 2px 0 0 2px;
-  animation: barGrow 560ms var(--ease) both;
-}
-
-.amountBarDebit {
-  background: linear-gradient(90deg, transparent, var(--debit-bar));
-}
-
-.amountBarCredit {
-  background: linear-gradient(90deg, transparent, var(--credit-bar));
-}
-
-@keyframes barGrow {
-  from {
-    width: 0;
-  }
-  to {
-    width: var(--bar-width);
-  }
-}
-
 .amountValue {
-  position: relative;
   font-size: 13.5px;
   font-weight: 500;
   letter-spacing: -0.01em;
@@ -419,7 +739,6 @@
 }
 
 .amountCurrency {
-  position: relative;
   margin-left: 8px;
   font-size: 10.5px;
   color: var(--text-low);
@@ -532,13 +851,14 @@
 
 .footBar {
   display: flex;
-  align-items: center;
-  gap: 14px;
   flex: 0 0 auto;
   padding: 10px 20px;
   border-top: 1px solid var(--hairline);
   background: var(--surface);
-  flex-wrap: wrap;
+}
+
+.footBar .barInner {
+  gap: 14px;
 }
 
 .footRange {

@@ -1,5 +1,6 @@
 import type { Movement } from '@/domain/entity/Movement';
 import type { MovementFilter } from '@/domain/entity/MovementFilter';
+import type { MovementFilterOptions } from '@/domain/entity/MovementFilterOptions';
 import type { MovementPage } from '@/domain/entity/MovementPage';
 import type { PageRequest } from '@/domain/entity/PageRequest';
 
@@ -9,4 +10,7 @@ export interface MovementQueryOutputPort {
 
   /** Filtering and slicing are resolved in the database, never in memory. */
   getPage(filter: MovementFilter, pageRequest: PageRequest): Promise<MovementPage>;
+
+  /** The distinct entities and currencies present in the collection, sorted. */
+  getFilterOptions(): Promise<MovementFilterOptions>;
 }

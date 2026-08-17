@@ -20,16 +20,17 @@ Spanish is what it opens with.
 4. [Folder structure](#folder-structure)
 5. [Data model](#data-model)
 6. [Requirements](#requirements)
-7. [Configuration](#configuration)
-8. [Running the project](#running-the-project)
-9. [Available scripts](#available-scripts)
-10. [Translations](#translations)
-11. [How pagination and filtering work](#how-pagination-and-filtering-work)
-12. [REST API](#rest-api)
-13. [Indexes and performance](#indexes-and-performance)
-14. [Bulk loading historical data](#bulk-loading-historical-data)
-15. [Design decisions](#design-decisions)
-16. [Troubleshooting](#troubleshooting)
+7. [Sample database with Docker](#sample-database-with-docker)
+8. [Configuration](#configuration)
+9. [Running the project](#running-the-project)
+10. [Available scripts](#available-scripts)
+11. [Translations](#translations)
+12. [How pagination and filtering work](#how-pagination-and-filtering-work)
+13. [REST API](#rest-api)
+14. [Indexes and performance](#indexes-and-performance)
+15. [Bulk loading historical data](#bulk-loading-historical-data)
+16. [Design decisions](#design-decisions)
+17. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -43,13 +44,23 @@ Spanish is what it opens with.
   typing `cajero` finds `RETIRO CAJERO AUTOMATICO RED LINK`.
 - **Date range filter** (from and to, both optional, date only) with a hand-built
   calendar. The "to" date covers the whole day: a movement at 23:50 still counts.
+- **Filter by bank entity and by currency**, from two combos whose values are the distinct
+  ones stored in the collection, sorted alphabetically. Nothing is a fixed catalogue: a
+  value is offered because some movement carries it, so no choice can return an empty
+  page. The movement form offers those same two lists, and there they are only
+  suggestions — type an entity or a currency the ledger has never seen and it is saved,
+  and from then on both places offer it too.
 - **Server-side pagination** with a picker for 5, 25, 50, 100 or 200 records per page.
   The default is 50.
+- **Columns to taste**: the funnel button drops a checkbox per column to take any of them
+  off the table, and every header can be dragged by its right edge to a different width.
 - **Language picker**, Spanish by default, English available.
 - **Dark mode** as the only theme.
 
-The state of the screen lives in the URL (`/?q=cajero&from=2026-01-01&page=3`), so
-reloading, sharing the link or hitting the back button all behave as expected.
+The state of the screen lives in the URL (`/?q=cajero&entity=BBVA-00017&currency=ARS&page=3`), so
+reloading, sharing the link or hitting the back button all behave as expected. The column
+choice is the exception: it says nothing about *what* is being looked at, only about how
+this particular browser likes to see it, so it stays in `localStorage` and out of the URL.
 
 ---
 
@@ -263,13 +274,99 @@ so the server's HTML and the client's always agree.
 
 - **Node.js 18.18 or newer** (tested on Node 24).
 - **MongoDB 6 or newer** reachable from this machine: a local install, a container or an
-  Atlas cluster.
+  Atlas cluster. Or **Docker**, and the project brings its own.
 
-To get an instance up with Docker in a minute:
+The database that comes with the project is already loaded with example movements. From
+the root:
 
 ```bash
-docker run -d --name ledger-mongo -p 27017:27017 -v ledger-data:/data/db mongo:latest
+docker compose up -d
 ```
+
+That is the whole database setup. The next section explains what it puts in there.
+
+---
+
+## Sample database with Docker
+
+`docker/mongo/` holds a MongoDB image that is the official server plus a seed script.
+MongoDB's entrypoint runs anything under `/docker-entrypoint-initdb.d` the first time it
+starts on an empty data directory, so the container comes up with the `movements`
+collection, its indexes and a year of movements already in it — the listing has something
+to show on the very first render, with enough rows to page through and filter.
+
+| File | What it is |
+| --- | --- |
+| `docker/mongo/Dockerfile` | `mongo:7` with the seed script baked in and `MONGO_INITDB_DATABASE=personal_finance` |
+| `docker/mongo/init/01-seed-movements.js` | Creates the indexes and inserts the example movements |
+| `docker-compose.yml` | Builds the image, publishes 27017 and keeps the data in the `ledger-data` volume |
+
+```bash
+docker compose up -d
+```
+
+```bash
+docker compose logs -f mongo
+```
+
+The log ends with what the seed inserted: the count, the balance per currency and the
+date range it covers.
+
+### What the seed contains
+
+Close to **300 movements over the last twelve months**, laid out relative to the day the
+container is first started, so the ledger always opens on recent data. The exact count
+moves with the day of the month, because the current month is only as far along as today:
+
+- The shape of a real Argentine household ledger: the payroll, rent and expenses, the
+  utility bills, a loan repayment, the monthly monotributo, the weekly supermarket run,
+  fuel, restaurants and cash withdrawals.
+- A handful of one-off movements — the half aguinaldo, a tax refund, a kitchen reform,
+  flight tickets — which are the interesting things to try the description filter on.
+- **Two currencies**: pesos for everything at home, dollars for what is bought abroad,
+  which is what makes the currency filter worth having.
+- **Five real bank entities**, each carrying the number the BCRA gives it in its
+  [register of financial institutions](https://www.bcra.gob.ar/entidades-financieras).
+- Movements **with and without a receipt**, so the `receiptId: null` case shows up in the
+  listing rather than only in the model.
+- Every amount as `Decimal128`, built from integer cents: no JavaScript float ever touches
+  the money, which is the same rule the application follows.
+- Six pages at the default page size of 50.
+
+The dates move with the calendar, but the amounts come out of a seeded generator: two
+people who run this get the same figures.
+
+### Reloading it
+
+The seed only runs while the data directory is empty. Once the volume exists, the
+container is your database and starting it again changes nothing. To go back to the
+example data, drop the volume:
+
+```bash
+docker compose down -v
+```
+
+```bash
+docker compose up -d
+```
+
+> `docker compose down` on its own stops the container and **keeps** your data. It is
+> the `-v` that throws it away.
+
+The indexes in the seed are the same four `MongoConfiguration` creates, with the same
+names, so the application finds nothing conflicting when it connects. If you ever change
+one, change it in both places: MongoDB rejects an index whose key and name disagree with
+an existing one.
+
+Port 27017 already taken by another MongoDB? Start it elsewhere and match the URI:
+
+```bash
+MONGO_PORT=27018 docker compose up -d
+```
+
+Using your own MongoDB instead — a local install or Atlas — needs none of this. Point
+`MONGODB_URI` at it and the application creates the collection and the indexes on its own;
+it just starts empty.
 
 ---
 
@@ -310,10 +407,15 @@ npm install
 ```
 
 ```bash
+npm run db:up
+```
+
+```bash
 npm run dev
 ```
 
-The application is then at **http://localhost:3000**.
+The application is then at **http://localhost:3000**, showing the example movements. Skip
+`db:up` if you are pointing `MONGODB_URI` at your own MongoDB.
 
 To run it the way production would:
 
@@ -335,6 +437,9 @@ npm start
 | `npm run build` | Production build, type checking included |
 | `npm start` | Serves the production build |
 | `npm run typecheck` | Runs TypeScript without emitting files |
+| `npm run db:up` | Starts the MongoDB container, seeding it on its first run |
+| `npm run db:down` | Stops the container, keeping the data |
+| `npm run db:reset` | Drops the data and starts again from the example movements |
 
 ---
 
@@ -462,8 +567,14 @@ GET /api/movements?description=cajero&from=2026-01-01&to=2026-03-31&page=0&size=
 | `description` | text, partial match, case-insensitive | — |
 | `from` | `YYYY-MM-DD`, inclusive from 00:00 | — |
 | `to` | `YYYY-MM-DD`, inclusive to 23:59:59.999 | — |
+| `bankEntityId` | exact match, whole value | — |
+| `currency` | exact match, whole value | — |
 | `page` | integer from 0 | 0 |
 | `size` | integer from 1 to 200 | 50 |
+
+All of them combine, and every one of them is resolved in MongoDB. A `bankEntityId` that
+no longer exists is not an error: it simply matches nothing, because a saved link can
+outlive the movements it was pointing at.
 
 ```json
 {
@@ -475,7 +586,7 @@ GET /api/movements?description=cajero&from=2026-01-01&to=2026-03-31&page=0&size=
       "currency": "ARS",
       "amount": "-135442.88",
       "receiptId": "46505375",
-      "bankEntityId": "BBVA-0170"
+      "bankEntityId": "BBVA-00017"
     }
   ],
   "totalPages": 9,
@@ -598,7 +709,7 @@ db.movements.insertMany([
     currency: "ARS",
     amount: NumberDecimal("48250.00"),
     receiptId: "10024455",
-    bankEntityId: "BBVA-0170"
+    bankEntityId: "BBVA-00017"
   }
 ]);
 ```
@@ -615,6 +726,11 @@ The mapper reads defensively: if an older load left the amount as a `Double` or 
 the listing still shows it. But storing it as `Decimal128` from the start is what
 guarantees no cents go missing.
 
+`docker/mongo/init/01-seed-movements.js` is this same exercise carried out in full: a
+few hundred documents built from integer cents and turned into text right before
+`NumberDecimal`, so no float ever sees the money. It is a reasonable thing to copy for
+your own import.
+
 ---
 
 ## Design decisions
@@ -629,11 +745,11 @@ that, only two colours carry meaning: green for money coming in, rose for money 
 that is data — amounts, dates, receipts, page numbers — with tabular figures, which is
 what keeps the column of amounts aligned however the digits change.
 
-**The amount column is also a chart.** Behind each amount runs a bar proportional to the
-largest amount **of that same currency within the page**. It makes the big movements
-findable at a glance across fifty rows, without reading a single number. Currency is
-compared against currency on purpose: putting pesos and dollars on one scale would read
-as a lie.
+**The amount carries its meaning in the colour, not in a chart.** An earlier version ran
+a bar behind each amount, proportional to the largest one of its currency on the page. It
+was removed: a shading whose scale is invisible asks to be decoded, and in a column of
+exact figures that reads as noise rather than as information. What is left is the sign in
+red or green, on the same plain background as every other cell.
 
 **Density over air.** 40 px rows, a pinned header, controls above and below, and only the
 table scrolling. This is a tool for looking at two hundred rows in a row, not a landing page.
@@ -660,8 +776,11 @@ There is no `.env.local`, or it is empty. Copy `.env.example` and fill it in. Af
 creating it, restart `npm run dev`.
 
 **The listing is empty on a fresh install**
-That is expected: the collection has no documents yet. Add the first one with the
-"New movement" button, or import your historical data.
+Against your own MongoDB that is expected: the collection has no documents yet. Add the
+first one with the "New movement" button, or import your historical data. Against the
+container, it means the seed did not run — MongoDB only runs it while the data directory
+is empty, so a volume created before the script existed keeps its own emptiness. Start
+over with `npm run db:reset` (`docker compose down -v && docker compose up -d`).
 
 **Amounts show more decimals than expected**
 The amount is displayed exactly as stored, with a minimum of two decimals. Seeing

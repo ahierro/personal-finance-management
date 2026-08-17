@@ -63,88 +63,90 @@ export function PaginationBar({ page, filters }: PaginationBarProps) {
 
   return (
     <div className={styles.footBar}>
-      <span className={styles.footRange}>
-        {page.totalElements === 0
-          ? t('pagination.empty')
-          : interpolate(
-              t('pagination.range'),
-              [page.firstRecord, page.lastRecord, page.totalElements].map((value, index) => (
-                <span key={index} className={`${styles.footRangeStrong} mono`}>
-                  {formatInteger(value, group)}
-                </span>
-              )),
-            )}
-      </span>
+      <div className={styles.barInner}>
+        <span className={styles.footRange}>
+          {page.totalElements === 0
+            ? t('pagination.empty')
+            : interpolate(
+                t('pagination.range'),
+                [page.firstRecord, page.lastRecord, page.totalElements].map((value, index) => (
+                  <span key={index} className={`${styles.footRangeStrong} mono`}>
+                    {formatInteger(value, group)}
+                  </span>
+                )),
+              )}
+        </span>
 
-      <span className={styles.footSpacer} />
+        <span className={styles.footSpacer} />
 
-      <div className={styles.sizeField}>
-        <label className={styles.sizeLabel} htmlFor="page-size-select">
-          {t('pagination.page-size')}
-        </label>
-        <select
-          id="page-size-select"
-          className={`${styles.select} mono`}
-          // The label is hidden on small screens, so the accessible name lives here.
-          aria-label={t('pagination.page-size.label')}
-          value={page.size}
-          onChange={(event) =>
-            navigate(buildLedgerHref({ ...filters, page: 1, size: Number(event.target.value) }), true)
-          }
-        >
-          {PAGE_SIZE_OPTIONS.map((option) => (
-            <option key={option} value={option}>
-              {option}
-            </option>
-          ))}
-        </select>
+        <div className={styles.sizeField}>
+          <label className={styles.sizeLabel} htmlFor="page-size-select">
+            {t('pagination.page-size')}
+          </label>
+          <select
+            id="page-size-select"
+            className={`${styles.select} mono`}
+            // The label is hidden on small screens, so the accessible name lives here.
+            aria-label={t('pagination.page-size.label')}
+            value={page.size}
+            onChange={(event) =>
+              navigate(buildLedgerHref({ ...filters, page: 1, size: Number(event.target.value) }), true)
+            }
+          >
+            {PAGE_SIZE_OPTIONS.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <nav className={styles.pager} aria-label={t('pagination.label')}>
+          <button
+            type="button"
+            className={styles.pageButton}
+            aria-label={t('pagination.previous')}
+            disabled={page.page <= 1 || navigating}
+            onClick={() => goTo(page.page - 1)}
+          >
+            <ChevronLeftIcon />
+          </button>
+
+          {visiblePages(page.page, totalPages).map((entry, index) =>
+            entry === 'gap' ? (
+              <span key={`gap-${index}`} className={styles.pageGap}>
+                ···
+              </span>
+            ) : (
+              <button
+                key={entry}
+                type="button"
+                className={
+                  entry === page.page
+                    ? `${styles.pageButton} ${styles.pageButtonActive} mono`
+                    : `${styles.pageButton} mono`
+                }
+                aria-label={t('pagination.page', [entry])}
+                aria-current={entry === page.page ? 'page' : undefined}
+                disabled={navigating}
+                onClick={() => goTo(entry)}
+              >
+                {entry}
+              </button>
+            ),
+          )}
+
+          <button
+            type="button"
+            className={styles.pageButton}
+            aria-label={t('pagination.next')}
+            disabled={page.page >= totalPages || navigating}
+            onClick={() => goTo(page.page + 1)}
+          >
+            <ChevronRightIcon />
+          </button>
+        </nav>
       </div>
-
-      <nav className={styles.pager} aria-label={t('pagination.label')}>
-        <button
-          type="button"
-          className={styles.pageButton}
-          aria-label={t('pagination.previous')}
-          disabled={page.page <= 1 || navigating}
-          onClick={() => goTo(page.page - 1)}
-        >
-          <ChevronLeftIcon />
-        </button>
-
-        {visiblePages(page.page, totalPages).map((entry, index) =>
-          entry === 'gap' ? (
-            <span key={`gap-${index}`} className={styles.pageGap}>
-              ···
-            </span>
-          ) : (
-            <button
-              key={entry}
-              type="button"
-              className={
-                entry === page.page
-                  ? `${styles.pageButton} ${styles.pageButtonActive} mono`
-                  : `${styles.pageButton} mono`
-              }
-              aria-label={t('pagination.page', [entry])}
-              aria-current={entry === page.page ? 'page' : undefined}
-              disabled={navigating}
-              onClick={() => goTo(entry)}
-            >
-              {entry}
-            </button>
-          ),
-        )}
-
-        <button
-          type="button"
-          className={styles.pageButton}
-          aria-label={t('pagination.next')}
-          disabled={page.page >= totalPages || navigating}
-          onClick={() => goTo(page.page + 1)}
-        >
-          <ChevronRightIcon />
-        </button>
-      </nav>
     </div>
   );
 }

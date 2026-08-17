@@ -14,7 +14,7 @@ import { LocaleResolver } from '@/infrastructure/i18n/LocaleResolver';
 /**
  * Reads on `/api/movements`.
  *
- * GET /api/movements?description=&from=&to=&page=&size=
+ * GET /api/movements?description=&from=&to=&bankEntityId=&currency=&page=&size=
  * GET /api/movements/{id}
  */
 export class MovementQueryController {
@@ -31,6 +31,8 @@ export class MovementQueryController {
         description: params.get('description'),
         from: params.get('from'),
         to: params.get('to'),
+        bankEntityId: params.get('bankEntityId'),
+        currency: params.get('currency'),
       });
       const pageRequest = PageRequest.fromRaw(params.get('page'), params.get('size'));
       const movementPage = await this.movementQueryUseCase.getMovementsPage(filter, pageRequest);

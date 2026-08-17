@@ -8,13 +8,11 @@ import type { MovementFormInput } from '@/infrastructure/adapters/input/web/view
 import type { MovementView } from '@/infrastructure/adapters/input/web/view/MovementView';
 import { Dialog } from '@/infrastructure/adapters/input/web/component/Dialog';
 import { AlertIcon } from '@/infrastructure/adapters/input/web/component/Icon';
+import { SuggestField } from '@/infrastructure/adapters/input/web/component/SuggestField';
 import { useTranslation } from '@/infrastructure/adapters/input/web/component/TranslationProvider';
 import styles from '@/infrastructure/adapters/input/web/component/Dialog.module.css';
 
 const FORM_ID = 'movement-form';
-
-/** Suggested currencies; the field accepts any code. */
-const CURRENCIES = ['ARS', 'USD', 'EUR', 'BRL', 'UYU'] as const;
 
 function nowForInput(): string {
   const now = new Date();
@@ -22,12 +20,22 @@ function nowForInput(): string {
   return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
 }
 
-function initialState(movement: MovementView | null): MovementFormInput {
+/**
+ * A new movement only arrives with a currency already filled in when the ledger leaves no
+ * room for doubt — that is, when every movement in it uses the same one. With two or more
+ * in play there is nothing to infer, and guessing would quietly file the movement under
+ * the wrong currency, so the field is left for whoever is loading it.
+ */
+function defaultCurrency(currencies: readonly string[]): string {
+  return currencies.length === 1 ? (currencies[0] ?? '') : '';
+}
+
+function initialState(movement: MovementView | null, currencies: readonly string[]): MovementFormInput {
   if (movement === null) {
     return {
       dateTime: nowForInput(),
       description: '',
-      currency: 'ARS',
+      currency: defaultCurrency(currencies),
       amount: '',
       receiptId: '',
       bankEntityId: '',
@@ -46,13 +54,20 @@ function initialState(movement: MovementView | null): MovementFormInput {
 interface MovementDialogProps {
   /** `null` to create; a movement to edit it. */
   readonly movement: MovementView | null;
+  /**
+   * The bank entities and currencies already in use, the same lists the filter combos
+   * offer. They are suggestions, not a closed set: a value the ledger has never seen is
+   * typed straight into the field, and shows up in both places from then on.
+   */
+  readonly entities: readonly string[];
+  readonly currencies: readonly string[];
   readonly onClose: () => void;
   readonly onSaved: () => void;
 }
 
-export function MovementDialog({ movement, onClose, onSaved }: MovementDialogProps) {
+export function MovementDialog({ movement, entities, currencies, onClose, onSaved }: MovementDialogProps) {
   const { t } = useTranslation();
-  const [form, setForm] = useState<MovementFormInput>(() => initialState(movement));
+  const [form, setForm] = useState<MovementFormInput>(() => initialState(movement, currencies));
   const [error, setError] = useState<ErrorModel | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -128,20 +143,15 @@ export function MovementDialog({ movement, onClose, onSaved }: MovementDialogPro
           <label className={styles.label} htmlFor="field-currency">
             {t('field.currency')}
           </label>
-          <input
+          <SuggestField
             id="field-currency"
-            list="currency-suggestions"
-            className={`${inputClass('currency')} mono`}
             value={form.currency}
+            suggestions={currencies}
             maxLength={10}
-            autoComplete="off"
-            onChange={(event) => set('currency', event.target.value.toUpperCase())}
+            invalid={fieldError('currency') !== null}
+            inputClassName="mono"
+            onChange={(value) => set('currency', value.toUpperCase())}
           />
-          <datalist id="currency-suggestions">
-            {CURRENCIES.map((currency) => (
-              <option key={currency} value={currency} />
-            ))}
-          </datalist>
           {fieldError('currency') !== null && <span className={styles.fieldError}>{fieldError('currency')}</span>}
         </div>
 
@@ -185,17 +195,19 @@ export function MovementDialog({ movement, onClose, onSaved }: MovementDialogPro
           <label className={styles.label} htmlFor="field-bank-entity">
             {t('field.bank-entity')}
           </label>
-          <input
+          <SuggestField
             id="field-bank-entity"
-            type="text"
-            className={`${inputClass('bankEntityId')} mono`}
             value={form.bankEntityId}
+            suggestions={entities}
             maxLength={100}
             placeholder={t('field.bank-entity.placeholder')}
-            autoComplete="off"
-            onChange={(event) => set('bankEntityId', event.target.value)}
+            invalid={fieldError('bankEntityId') !== null}
+            inputClassName="mono"
+            onChange={(value) => set('bankEntityId', value)}
           />
-          {fieldError('bankEntityId') !== null && (
+          {fieldError('bankEntityId') === null ? (
+            entities.length > 0 && <span className={styles.hint}>{t('field.bank-entity.hint')}</span>
+          ) : (
             <span className={styles.fieldError}>{fieldError('bankEntityId')}</span>
           )}
         </div>

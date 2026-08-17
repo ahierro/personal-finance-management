@@ -66,6 +66,16 @@ export class MovementDboMapper {
       query.description = { $regex: escapeRegExp(filter.description), $options: 'i' };
     }
 
+    // Both are picked from a combo built out of the stored values, so they are matched
+    // whole and exactly: no regular expression, and the field's index does the work.
+    if (filter.bankEntityId !== null) {
+      query.bankEntityId = filter.bankEntityId;
+    }
+
+    if (filter.currency !== null) {
+      query.currency = filter.currency;
+    }
+
     if (filter.from !== null || filter.to !== null) {
       const range: { $gte?: Date; $lte?: Date } = {};
       if (filter.from !== null) {

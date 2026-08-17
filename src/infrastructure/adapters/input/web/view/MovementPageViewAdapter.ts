@@ -14,7 +14,11 @@ import {
   toPageSize,
   type RawSearchParams,
 } from '@/infrastructure/adapters/input/web/view/MovementSearchParams';
-import type { FiltersView, MovementPageResult } from '@/infrastructure/adapters/input/web/view/MovementView';
+import type {
+  FilterOptionsView,
+  FiltersView,
+  MovementPageResult,
+} from '@/infrastructure/adapters/input/web/view/MovementView';
 import { MovementViewMapper } from '@/infrastructure/adapters/input/web/view/MovementViewMapper';
 import { ApplicationConfiguration } from '@/infrastructure/config/ApplicationConfiguration';
 import type { Translator } from '@/infrastructure/i18n/Translator';
@@ -34,18 +38,32 @@ export class MovementPageViewAdapter {
       q: firstParam(rawSearchParams[SearchParam.q]),
       from: firstParam(rawSearchParams[SearchParam.from]),
       to: firstParam(rawSearchParams[SearchParam.to]),
+      entity: firstParam(rawSearchParams[SearchParam.entity]),
+      currency: firstParam(rawSearchParams[SearchParam.currency]),
     };
     const size = toPageSize(firstParam(rawSearchParams[SearchParam.size]));
+    let options: FilterOptionsView = { entities: [], currencies: [] };
 
     try {
       const filter = MovementFilter.fromRaw({
         description: filters.q,
         from: filters.from,
         to: filters.to,
+        bankEntityId: filters.entity,
+        currency: filters.currency,
       });
       const page = toPageNumber(firstParam(rawSearchParams[SearchParam.page]));
 
-      let movementPage = await this.movementQueryUseCase.getMovementsPage(filter, PageRequest.of(page, size));
+      // The combos list every value in the collection, not only the ones surviving the
+      // current filters: narrowing them as you pick would take away the option you just
+      // used and leave no way back. Both queries go out at once.
+      const [movementPageResult, filterOptions] = await Promise.all([
+        this.movementQueryUseCase.getMovementsPage(filter, PageRequest.of(page, size)),
+        this.movementQueryUseCase.getFilterOptions(),
+      ]);
+      options = { entities: filterOptions.bankEntityIds, currencies: filterOptions.currencies };
+
+      let movementPage = movementPageResult;
 
       // Deleting the last record of the last page would leave an empty screen: in that
       // case the last page that does have content is fetched instead.
@@ -56,9 +74,15 @@ export class MovementPageViewAdapter {
         );
       }
 
-      return { ok: true, filters, size, page: new MovementViewMapper(translator).toPageView(movementPage) };
+      return {
+        ok: true,
+        filters,
+        options,
+        size,
+        page: new MovementViewMapper(translator).toPageView(movementPage),
+      };
     } catch (error) {
-      return { ok: false, filters, size, error: this.advice.toErrorModel(error, translator) };
+      return { ok: false, filters, options, size, error: this.advice.toErrorModel(error, translator) };
     }
   }
 }

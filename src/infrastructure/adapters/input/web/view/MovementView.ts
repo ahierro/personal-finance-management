@@ -20,8 +20,6 @@ export interface MovementView {
   /** Value formatted for reading: `-1.234,56`. */
   readonly amountDisplay: string;
   readonly negative: boolean;
-  /** 0 to 1: this amount against the largest one of its currency on this page. */
-  readonly magnitude: number;
   readonly receiptId: string;
   readonly bankEntityId: string;
 }
@@ -33,6 +31,16 @@ export interface FiltersView {
   readonly from: string;
   /** `YYYY-MM-DD` or empty. */
   readonly to: string;
+  /** Bank entity picked in the combo, or empty for all of them. */
+  readonly entity: string;
+  /** Currency picked in the combo, or empty for all of them. */
+  readonly currency: string;
+}
+
+/** What the two combos offer, read from the collection on every render. */
+export interface FilterOptionsView {
+  readonly entities: readonly string[];
+  readonly currencies: readonly string[];
 }
 
 export interface MovementPageView {
@@ -48,9 +56,23 @@ export interface MovementPageView {
 }
 
 /**
- * `filters` and `size` travel on both branches: even when the query fails, the filter bar
- * has to stay on screen so whatever broke it can be corrected.
+ * `filters`, `size` and `options` travel on both branches: even when the query fails, the
+ * filter bar has to stay on screen so whatever broke it can be corrected. When the
+ * failure is the database itself the combos come back empty, which is the truth — there
+ * is nothing to offer.
  */
 export type MovementPageResult =
-  | { readonly ok: true; readonly filters: FiltersView; readonly size: number; readonly page: MovementPageView }
-  | { readonly ok: false; readonly filters: FiltersView; readonly size: number; readonly error: ErrorModel };
+  | {
+      readonly ok: true;
+      readonly filters: FiltersView;
+      readonly options: FilterOptionsView;
+      readonly size: number;
+      readonly page: MovementPageView;
+    }
+  | {
+      readonly ok: false;
+      readonly filters: FiltersView;
+      readonly options: FilterOptionsView;
+      readonly size: number;
+      readonly error: ErrorModel;
+    };

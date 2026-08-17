@@ -2,6 +2,7 @@ import type { MovementQueryOutputPort } from '@/application/ports/output/Movemen
 import type { MovementQueryUseCase } from '@/application/usecases/MovementQueryUseCase';
 import type { Movement } from '@/domain/entity/Movement';
 import type { MovementFilter } from '@/domain/entity/MovementFilter';
+import type { MovementFilterOptions } from '@/domain/entity/MovementFilterOptions';
 import type { MovementPage } from '@/domain/entity/MovementPage';
 import type { PageRequest } from '@/domain/entity/PageRequest';
 
@@ -15,5 +16,9 @@ export class MovementQueryInputPort implements MovementQueryUseCase {
 
   async getMovementsPage(filter: MovementFilter, pageRequest: PageRequest): Promise<MovementPage> {
     return this.queryOutputPort.getPage(filter, pageRequest);
+  }
+
+  async getFilterOptions(): Promise<MovementFilterOptions> {
+    return this.queryOutputPort.getFilterOptions();
   }
 }

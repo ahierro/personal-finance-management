@@ -14,6 +14,10 @@ export interface MovementFilter {
   readonly description: string | null;
   readonly from: Date | null;
   readonly to: Date | null;
+  /** Exact bank entity, as picked from the values already present in the collection. */
+  readonly bankEntityId: string | null;
+  /** Exact currency, likewise. */
+  readonly currency: string | null;
 }
 
 function parseDate(value: string, field: string, endOfDay: boolean): Date {
@@ -44,11 +48,17 @@ function nonEmpty(value: string | null | undefined): string | null {
 
 export const MovementFilter = {
   empty(): MovementFilter {
-    return { description: null, from: null, to: null };
+    return { description: null, from: null, to: null, bankEntityId: null, currency: null };
   },
 
   /** Builds the filter from raw query-string values. All of them are optional. */
-  fromRaw(raw: { description?: string | null; from?: string | null; to?: string | null }): MovementFilter {
+  fromRaw(raw: {
+    description?: string | null;
+    from?: string | null;
+    to?: string | null;
+    bankEntityId?: string | null;
+    currency?: string | null;
+  }): MovementFilter {
     const rawFrom = nonEmpty(raw.from);
     const rawTo = nonEmpty(raw.to);
     const from = rawFrom === null ? null : parseDate(rawFrom, 'from', false);
@@ -58,6 +68,14 @@ export const MovementFilter = {
       throw new MovementValidationException('error.date-range.inverted', 'from');
     }
 
-    return { description: nonEmpty(raw.description), from, to };
+    return {
+      description: nonEmpty(raw.description),
+      from,
+      to,
+      // An entity or a currency that no longer exists simply matches nothing; it is not a
+      // validation error, because a link can outlive the movements it was pointing at.
+      bankEntityId: nonEmpty(raw.bankEntityId),
+      currency: nonEmpty(raw.currency),
+    };
   },
 };

@@ -1,0 +1,39 @@
+# The MongoDB the application talks to in development, already loaded with example data.
+#
+#   docker compose up -d          start it (the seed runs the first time only)
+#   docker compose logs -f mongo  watch the seed report what it inserted
+#   docker compose down           stop it, keeping the data
+#   docker compose down -v        stop it and drop the data, so the seed runs again
+#
+# The connection string this serves is the one .env.example already carries:
+#   MONGODB_URI=mongodb://127.0.0.1:27017/personal_finance
+
+services:
+  mongo:
+    build:
+      context: ./docker/mongo
+    image: ledger-mongo:local
+    container_name: ledger-mongo
+    restart: unless-stopped
+    ports:
+      # Set MONGO_PORT if 27017 is already taken by another MongoDB on this machine,
+      # and match it in MONGODB_URI.
+      - '${MONGO_PORT:-27017}:27017'
+    volumes:
+      # The seed script only runs while this volume is empty: that is what makes
+      # `docker compose down -v` the way to get the example data back.
+      - ledger-data:/data/db
+    healthcheck:
+      test: ['CMD', 'mongosh', '--quiet', '--eval', "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      # The first start has to seed before it can answer.
+      start_period: 30s
+
+    # No authentication: this is a development database that listens on localhost. To turn
+    # it on, set MONGO_INITDB_ROOT_USERNAME and MONGO_INITDB_ROOT_PASSWORD here and use
+    # mongodb://user:password@127.0.0.1:27017/personal_finance?authSource=admin as the URI.
+
+volumes:
+  ledger-data:

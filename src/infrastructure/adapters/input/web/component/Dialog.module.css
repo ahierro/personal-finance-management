@@ -193,6 +193,76 @@
   cursor: pointer;
 }
 
+/* ── Field with suggestions ────────────────────────────────────────────────
+   The list is anchored to this box and stretched to `left: 0; right: 0`, so it is the
+   width of the field and flush with both of its edges whatever the dialog measures. */
+.suggestField {
+  position: relative;
+  display: block;
+}
+
+/* Room for the chevron, so a long value never runs underneath it. */
+.suggestInput {
+  padding-right: 32px;
+}
+
+.suggestToggle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 38px;
+  border: 0;
+  background: transparent;
+  color: var(--text-low);
+  transition: color 110ms linear;
+}
+
+.suggestField:focus-within .suggestToggle {
+  color: var(--text-mid);
+}
+
+.suggestList {
+  position: absolute;
+  top: calc(100% + 5px);
+  left: 0;
+  right: 0;
+  z-index: 5;
+  max-height: 196px;
+  margin: 0;
+  padding: 4px;
+  overflow-y: auto;
+  list-style: none;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  box-shadow: var(--shadow-pop);
+}
+
+.suggestOption {
+  padding: 7px 9px;
+  border-radius: var(--radius-sm);
+  color: var(--text-mid);
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+
+.suggestOptionActive {
+  background: var(--control);
+  color: var(--text);
+}
+
+/* The value the field already holds, marked so it is findable in a long list. */
+.suggestOption[aria-selected='true'] {
+  color: var(--brass-hi);
+}
+
 .hint {
   font-size: 11.5px;
   color: var(--text-low);

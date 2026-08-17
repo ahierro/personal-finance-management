@@ -1,16 +1,52 @@
 import type { MovementView } from '@/infrastructure/adapters/input/web/view/MovementView';
 import type { Translator } from '@/infrastructure/i18n/Translator';
+import type { LedgerColumnId } from '@/infrastructure/adapters/input/web/view/LedgerColumns';
+import { ColumnResizeHandle } from '@/infrastructure/adapters/input/web/component/ColumnResizeHandle';
 import { MovementRowActions } from '@/infrastructure/adapters/input/web/component/MovementRowActions';
 import styles from '@/infrastructure/adapters/input/web/component/Ledger.module.css';
 
-/** Floor width so even the smallest amount leaves a readable mark. */
-const MINIMUM_BAR_WIDTH = 1.5;
-/** The staggered draw is cut short before it turns into a wait. */
-const MAXIMUM_DELAY_MS = 260;
+/** Where each column takes its width from. The rules themselves read the custom property. */
+const WIDTH_CLASS: Record<LedgerColumnId, string | undefined> = {
+  date: styles.colDate,
+  description: styles.colDescription,
+  receipt: styles.colReceipt,
+  entity: styles.colEntity,
+  amount: styles.colAmount,
+};
+
+/**
+ * Header cell. `data-column` is what the stylesheet keys on to hide the whole column, and
+ * the grip on the right edge is the only interactive part of the header.
+ */
+function HeadCell({
+  column,
+  label,
+  className = '',
+  title,
+}: {
+  readonly column: LedgerColumnId;
+  readonly label: React.ReactNode;
+  readonly className?: string;
+  readonly title?: string;
+}) {
+  return (
+    <th
+      scope="col"
+      data-column={column}
+      className={`${styles.headCell} ${WIDTH_CLASS[column] ?? ''} ${className}`}
+      title={title}
+    >
+      <span className={styles.headCellLabel}>{label}</span>
+      <ColumnResizeHandle column={column} label={typeof label === 'string' ? label : column} />
+    </th>
+  );
+}
 
 /**
  * The table is built entirely on the server: it arrives as HTML, with nothing for the
- * browser to fetch or sort. Only the two buttons on each row are interactive.
+ * browser to fetch or sort. Only the grips in the header and the two buttons on each row
+ * are interactive; which columns are on screen and how wide they are is decided in CSS
+ * from the preferences `LedgerTableViewport` puts on the scrolling box.
  */
 export function MovementTable({
   movements,
@@ -25,63 +61,44 @@ export function MovementTable({
     <table className={styles.table}>
       <thead>
         <tr>
-          <th scope="col" className={`${styles.headCell} ${styles.colDate}`}>
-            {t('table.column.date')}
-          </th>
-          <th scope="col" className={styles.headCell}>
-            {t('table.column.description')}
-          </th>
-          <th scope="col" className={`${styles.headCell} ${styles.colReceipt}`}>
-            {t('table.column.receipt')}
-          </th>
-          <th scope="col" className={`${styles.headCell} ${styles.colEntity}`}>
-            {t('table.column.entity')}
-          </th>
-          <th
-            scope="col"
-            className={`${styles.headCell} ${styles.headCellRight} ${styles.colAmount}`}
-            title={t('table.amount.bar-hint')}
-          >
-            {t('table.column.amount')}
-          </th>
+          <th className={`${styles.headCell} ${styles.colFiller}`} aria-hidden="true" />
+          <HeadCell column="date" label={t('table.column.date')} />
+          <HeadCell column="description" label={t('table.column.description')} />
+          <HeadCell column="receipt" label={t('table.column.receipt')} />
+          <HeadCell column="entity" label={t('table.column.entity')} />
+          <HeadCell column="amount" label={t('table.column.amount')} className={styles.headCellRight} />
           <th scope="col" className={`${styles.headCell} ${styles.colActions}`}>
             <span className="visually-hidden">{t('table.column.actions')}</span>
           </th>
+          <th className={`${styles.headCell} ${styles.colFiller}`} aria-hidden="true" />
         </tr>
       </thead>
       <tbody>
-        {movements.map((movement, index) => (
+        {movements.map((movement) => (
           <tr key={movement.id} className={styles.row}>
-            <td className={`${styles.cell} ${styles.cellDate} mono`}>
+            <td className={styles.cell} aria-hidden="true" />
+            <td data-column="date" className={`${styles.cell} ${styles.cellDate} mono`}>
               {movement.date}
               <span className={styles.cellTime}>{movement.time}</span>
             </td>
-            <td className={`${styles.cell} ${styles.cellDescription}`} title={movement.description}>
+            <td
+              data-column="description"
+              className={`${styles.cell} ${styles.cellDescription}`}
+              title={movement.description}
+            >
               {movement.description}
             </td>
-            <td className={`${styles.cell} mono`}>
+            <td data-column="receipt" className={`${styles.cell} mono`}>
               {movement.receiptId === '' ? (
                 <span className={styles.cellEmpty}>{t('table.empty-value')}</span>
               ) : (
                 movement.receiptId
               )}
             </td>
-            <td className={`${styles.cell} mono`} title={movement.bankEntityId}>
+            <td data-column="entity" className={`${styles.cell} mono`} title={movement.bankEntityId}>
               {movement.bankEntityId}
             </td>
-            <td className={styles.cellAmount}>
-              <span
-                aria-hidden="true"
-                className={`${styles.amountBar} ${
-                  movement.negative ? styles.amountBarDebit : styles.amountBarCredit
-                }`}
-                style={
-                  {
-                    '--bar-width': `${Math.max(movement.magnitude * 100, MINIMUM_BAR_WIDTH)}%`,
-                    animationDelay: `${Math.min(index * 6, MAXIMUM_DELAY_MS)}ms`,
-                  } as React.CSSProperties
-                }
-              />
+            <td data-column="amount" className={styles.cellAmount}>
               <span
                 className={`${styles.amountValue} ${
                   movement.negative ? styles.amountDebit : styles.amountCredit
@@ -94,6 +111,7 @@ export function MovementTable({
             <td className={styles.cellActions}>
               <MovementRowActions movement={movement} />
             </td>
+            <td className={styles.cell} aria-hidden="true" />
           </tr>
         ))}
       </tbody>
