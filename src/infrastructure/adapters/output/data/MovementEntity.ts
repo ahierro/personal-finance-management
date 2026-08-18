@@ -18,3 +18,14 @@ export interface MovementEntity {
   receiptId: string | null;
   bankEntityId: string;
 }
+
+/**
+ * One row of the totals aggregation: the currency grouped by, and what its movements add
+ * up to. `_id` is null for a document with no currency, and `total` arrives as a
+ * Decimal128 unless every amount in the group failed to convert.
+ */
+export interface CurrencyTotalDocument {
+  _id: string | null;
+  total: Decimal128 | number;
+  count: number;
+}

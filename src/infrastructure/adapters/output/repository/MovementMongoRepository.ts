@@ -2,7 +2,11 @@ import 'server-only';
 import { ObjectId, type Collection, type Filter, type Sort } from 'mongodb';
 
 import type { PageRequest } from '@/domain/entity/PageRequest';
-import { MOVEMENTS_COLLECTION, type MovementEntity } from '@/infrastructure/adapters/output/data/MovementEntity';
+import {
+  MOVEMENTS_COLLECTION,
+  type CurrencyTotalDocument,
+  type MovementEntity,
+} from '@/infrastructure/adapters/output/data/MovementEntity';
 import type { MovementDocument } from '@/infrastructure/adapters/output/mapper/MovementDboMapper';
 import { MongoConfiguration } from '@/infrastructure/config/MongoConfiguration';
 
@@ -42,6 +46,31 @@ export class MovementMongoRepository {
   async count(filter: Filter<MovementEntity>): Promise<number> {
     const collection = await this.collection();
     return collection.countDocuments(filter);
+  }
+
+  /**
+   * Adds the amounts up inside MongoDB, one total per currency, over every document the
+   * filter matches rather than over the page on screen.
+   *
+   * The sum stays in Decimal128 from end to end, which is exact for decimal money: adding
+   * four thousand amounts as JavaScript numbers would drift by cents. `$convert` is there
+   * because a bulk import may have left an amount as text or as a double, the same reason
+   * the mapper reads the field defensively on the way out.
+   */
+  async aggregateTotalsByCurrency(filter: Filter<MovementEntity>): Promise<CurrencyTotalDocument[]> {
+    const collection = await this.collection();
+    return collection
+      .aggregate<CurrencyTotalDocument>([
+        { $match: filter },
+        {
+          $group: {
+            _id: '$currency',
+            total: { $sum: { $convert: { input: '$amount', to: 'decimal', onError: 0, onNull: 0 } } },
+            count: { $sum: 1 },
+          },
+        },
+      ])
+      .toArray();
   }
 
   /**

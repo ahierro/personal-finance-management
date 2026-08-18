@@ -6,9 +6,11 @@ import type { ErrorModel } from '@/domain/entity/ErrorModel';
 import { createMovement, editMovement } from '@/infrastructure/adapters/input/web/action/MovementCommandActions';
 import type { MovementFormInput } from '@/infrastructure/adapters/input/web/view/MovementFormInput';
 import type { MovementView } from '@/infrastructure/adapters/input/web/view/MovementView';
+import { DateField } from '@/infrastructure/adapters/input/web/component/DateField';
 import { Dialog } from '@/infrastructure/adapters/input/web/component/Dialog';
 import { AlertIcon } from '@/infrastructure/adapters/input/web/component/Icon';
 import { SuggestField } from '@/infrastructure/adapters/input/web/component/SuggestField';
+import { TimeField } from '@/infrastructure/adapters/input/web/component/TimeField';
 import { useTranslation } from '@/infrastructure/adapters/input/web/component/TranslationProvider';
 import styles from '@/infrastructure/adapters/input/web/component/Dialog.module.css';
 
@@ -18,6 +20,29 @@ function nowForInput(): string {
   const now = new Date();
   const pad = (value: number) => String(value).padStart(2, '0');
   return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+}
+
+/**
+ * The form holds `2026-08-14T09:41` in one string and edits it with two controls: the
+ * ledger's own calendar for the date and a clock field for the time. The halves are split
+ * on the way in and joined on the way out, so what the command receives keeps the shape
+ * the validator expects.
+ */
+function dateOf(dateTime: string): string {
+  return /^\d{4}-\d{2}-\d{2}/.exec(dateTime)?.[0] ?? '';
+}
+
+function timeOf(dateTime: string): string {
+  return /T(\d{2}:\d{2})/.exec(dateTime)?.[1] ?? '';
+}
+
+/**
+ * An empty date empties the whole value, so the movement is turned away for having no date
+ * instead of being filed on a day nobody chose. An empty clock is read as midnight, which
+ * is what a date with no time given means.
+ */
+function joinDateTime(date: string, time: string): string {
+  return date === '' ? '' : `${date}T${time === '' ? '00:00' : time}`;
 }
 
 /**
@@ -126,16 +151,28 @@ export function MovementDialog({ movement, entities, currencies, onClose, onSave
 
       <form id={FORM_ID} className={styles.grid} onSubmit={handleSubmit} noValidate>
         <div className={`${styles.field} ${styles.spanDateTime}`}>
-          <label className={styles.label} htmlFor="field-date-time">
+          <label className={styles.label} htmlFor="field-date">
             {t('field.date-time')}
           </label>
-          <input
-            id="field-date-time"
-            type="datetime-local"
-            className={`${inputClass('dateTime')} mono`}
-            value={form.dateTime}
-            onChange={(event) => set('dateTime', event.target.value)}
-          />
+          {/* The same calendar the filter bar uses, so a date is picked the same way on
+              both screens; the clock keeps its own field beside it. */}
+          <div className={styles.dateTimeRow}>
+            <DateField
+              id="field-date"
+              fill
+              clearable={false}
+              label={t('field.date-time')}
+              value={dateOf(form.dateTime)}
+              onChange={(isoDate) => set('dateTime', joinDateTime(isoDate, timeOf(form.dateTime)))}
+            />
+            <TimeField
+              id="field-time"
+              fill
+              label={t('field.time')}
+              value={timeOf(form.dateTime)}
+              onChange={(time) => set('dateTime', joinDateTime(dateOf(form.dateTime), time))}
+            />
+          </div>
           {fieldError('dateTime') !== null && <span className={styles.fieldError}>{fieldError('dateTime')}</span>}
         </div>
 

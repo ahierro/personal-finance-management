@@ -20,8 +20,8 @@ export interface LedgerColumn {
 }
 
 export const LEDGER_COLUMNS: readonly LedgerColumn[] = [
-  // Wide enough for the date and the time beside it, which is what the cell renders.
-  { id: 'date', labelKey: 'table.column.date', defaultWidth: 172, minWidth: 96, maxWidth: 420 },
+  // Wide enough for a full date; the time is kept in the database but never rendered.
+  { id: 'date', labelKey: 'table.column.date', defaultWidth: 124, minWidth: 96, maxWidth: 420 },
   { id: 'description', labelKey: 'table.column.description', defaultWidth: 340, minWidth: 120, maxWidth: 900 },
   { id: 'receipt', labelKey: 'table.column.receipt', defaultWidth: 132, minWidth: 80, maxWidth: 420 },
   { id: 'entity', labelKey: 'table.column.entity', defaultWidth: 152, minWidth: 80, maxWidth: 420 },

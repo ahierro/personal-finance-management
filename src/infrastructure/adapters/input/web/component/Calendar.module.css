@@ -1,11 +1,11 @@
-/* The field is the box; the calendar trigger and the clear button live inside it as
-   siblings, so no interactive element ends up nested in another. */
+/* The field is the box; the text input, the calendar button and the clear button live
+   inside it as siblings, so no interactive element ends up nested in another. */
 .field {
   position: relative;
   display: inline-flex;
   align-items: center;
   height: 36px;
-  padding-right: 5px;
+  padding: 0 5px 0 3px;
   border: 1px solid var(--hairline);
   border-radius: var(--radius-md);
   background: var(--surface);
@@ -26,35 +26,76 @@
   background: var(--surface-hi);
 }
 
-.trigger {
+/* Inside a form the box stops being a toolbar control and becomes a field like the ones
+   around it: the full width of its cell, and the height, radius and background the dialog
+   gives its inputs. */
+.fieldFill {
+  flex: 1;
+  min-width: 0;
+  height: 38px;
+  padding-right: 4px;
+  border-radius: var(--radius-md);
+  background: var(--bg);
+}
+
+.fieldFill .input {
+  flex: 1;
+  width: auto;
+  min-width: 0;
+  font-size: 13.5px;
+}
+
+/* The box carries the focus ring for the input it frames: the global one would sit two
+   pixels outside the border and draw a second rectangle around the first. */
+.field:focus-within {
+  border-color: var(--brass-line);
+  background: var(--surface-hi);
+}
+
+.calendarButton {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  height: 34px;
-  padding: 0 6px 0 9px;
+  justify-content: center;
+  width: 26px;
+  height: 30px;
   border: 0;
   border-radius: var(--radius-sm);
   background: transparent;
-  color: var(--text-mid);
-  font-size: 12.5px;
-  white-space: nowrap;
-  transition: color 120ms var(--ease);
-}
-
-.fieldActive .trigger {
-  color: var(--text);
-}
-
-.triggerIcon {
-  display: flex;
   color: var(--text-low);
+  transition: color 110ms linear, background 110ms linear;
 }
 
-.triggerValue {
+.calendarButton:hover {
+  color: var(--text);
+  background: var(--control);
+}
+
+.fieldActive .calendarButton {
+  color: var(--text-mid);
+}
+
+/* Fixed to the width of a full date, so the bar does not shuffle as the digits are typed. */
+.input {
+  width: 82px;
+  height: 34px;
+  padding: 0 2px;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font-size: 12.5px;
   letter-spacing: 0.01em;
 }
 
-.triggerPlaceholder {
+/* A clock needs five characters where a date needs ten. */
+.inputTime {
+  width: 54px;
+}
+
+.input:focus-visible {
+  outline: none;
+}
+
+.input::placeholder {
   color: var(--text-low);
 }
 
@@ -111,12 +152,45 @@
   margin-bottom: 10px;
 }
 
+/* The month and year are the way into the other two panels, so the label is the button. */
+.titleButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 26px;
+  padding: 0 6px 0 7px;
+  margin-left: -7px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  transition: background 110ms linear;
+}
+
+.titleButton:hover {
+  background: var(--control);
+}
+
 .monthLabel {
   font-size: 13px;
   font-weight: 600;
   color: var(--text);
   text-transform: capitalize;
   letter-spacing: -0.005em;
+}
+
+.titleChevron {
+  display: flex;
+  color: var(--text-low);
+  transition: transform 140ms var(--ease), color 110ms linear;
+}
+
+.titleButton:hover .titleChevron {
+  color: var(--text-mid);
+}
+
+/* Pointing up while a panel is open: the next click folds it back into the day grid. */
+.titleChevronUp {
+  transform: rotate(180deg);
 }
 
 .monthNav {
@@ -140,6 +214,13 @@
 .navButton:hover {
   color: var(--text);
   background: var(--control);
+}
+
+/* The height of the day grid — week header included — held for the three panels, so that
+   moving between them leaves the arrows above and the buttons below exactly where they
+   were. 26px of week header plus six 30px rows and their five 2px gaps. */
+.body {
+  height: 216px;
 }
 
 .weekHead {
@@ -202,6 +283,130 @@
 }
 
 .daySelected:hover {
+  background: var(--brass-hi);
+  color: #1a1204;
+}
+
+/* ── Clock ─────────────────────────────────────────────────────────────── */
+
+/* Narrower than the calendar and only as wide as its two columns need, but padded and
+   framed exactly like it: the two open from fields that sit side by side. */
+.popoverTime {
+  width: auto;
+}
+
+.timePanels {
+  display: flex;
+  gap: 6px;
+}
+
+.timeColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.timeColumnHead {
+  height: 18px;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--text-low);
+  text-transform: uppercase;
+  text-align: center;
+}
+
+/* `position: relative` so the offset of the selected row is measured against the column
+   and the popover opens with it already centred. */
+.timeList {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 62px;
+  height: 168px;
+  padding-right: 2px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.timeOption {
+  flex: 0 0 auto;
+  height: 28px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-mid);
+  font-size: 12px;
+  transition: background 110ms linear, color 110ms linear;
+}
+
+.timeOption:hover {
+  background: var(--control);
+  color: var(--text);
+}
+
+.timeOptionSelected {
+  background: var(--brass);
+  border-color: var(--brass);
+  color: #1a1204;
+  font-weight: 500;
+}
+
+.timeOptionSelected:hover {
+  background: var(--brass-hi);
+  color: #1a1204;
+}
+
+/* ── Month and year panels ─────────────────────────────────────────────── */
+
+.monthPanel,
+.yearPanel {
+  display: grid;
+  height: 100%;
+  gap: 6px;
+}
+
+.monthPanel {
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(4, 1fr);
+}
+
+.yearPanel {
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+}
+
+.panelCell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-mid);
+  font-size: 12px;
+  text-transform: capitalize;
+  transition: background 110ms linear, color 110ms linear;
+}
+
+.panelCell:hover {
+  background: var(--control);
+  color: var(--text);
+}
+
+.panelCellToday {
+  border-color: var(--hairline);
+  color: var(--text);
+}
+
+.panelCellSelected {
+  background: var(--brass);
+  border-color: var(--brass);
+  color: #1a1204;
+  font-weight: 500;
+}
+
+.panelCellSelected:hover {
   background: var(--brass-hi);
   color: #1a1204;
 }

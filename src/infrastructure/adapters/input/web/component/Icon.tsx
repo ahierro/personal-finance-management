@@ -53,6 +53,15 @@ export function CalendarIcon({ size = 14 }: IconProps) {
   );
 }
 
+export function ClockIcon({ size = 14 }: IconProps) {
+  return (
+    <svg {...base(size)}>
+      <circle cx="8" cy="8" r="5.6" />
+      <path d="M8 4.8V8l2.2 1.6" />
+    </svg>
+  );
+}
+
 export function EditIcon({ size = 14 }: IconProps) {
   return (
     <svg {...base(size)}>

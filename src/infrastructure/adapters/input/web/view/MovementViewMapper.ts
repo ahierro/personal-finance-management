@@ -2,8 +2,13 @@ import 'server-only';
 
 import type { Movement } from '@/domain/entity/Movement';
 import type { MovementPage } from '@/domain/entity/MovementPage';
-import type { MovementPageView, MovementView } from '@/infrastructure/adapters/input/web/view/MovementView';
-import { formatDecimal, formatPattern, type Translator } from '@/infrastructure/i18n/Translator';
+import type { MovementTotal } from '@/domain/entity/MovementTotal';
+import type {
+  CurrencyTotalView,
+  MovementPageView,
+  MovementView,
+} from '@/infrastructure/adapters/input/web/view/MovementView';
+import { formatDecimal, formatInteger, formatPattern, type Translator } from '@/infrastructure/i18n/Translator';
 
 const pad = (value: number): string => String(value).padStart(2, '0');
 
@@ -34,6 +39,16 @@ export class MovementViewMapper {
       receiptId: movement.receiptId ?? '',
       bankEntityId: movement.bankEntityId,
     };
+  }
+
+  toTotalsView(totals: readonly MovementTotal[]): CurrencyTotalView[] {
+    const group = this.translator.t('format.number.group');
+    return totals.map((total) => ({
+      currency: total.currency,
+      amountDisplay: formatDecimal(total.amount, group, this.translator.t('format.number.decimal')),
+      countDisplay: formatInteger(total.count, group),
+      negative: total.amount.startsWith('-'),
+    }));
   }
 
   toPageView(movementPage: MovementPage): MovementPageView {

@@ -56,10 +56,12 @@ export class MovementPageViewAdapter {
 
       // The combos list every value in the collection, not only the ones surviving the
       // current filters: narrowing them as you pick would take away the option you just
-      // used and leave no way back. Both queries go out at once.
-      const [movementPageResult, filterOptions] = await Promise.all([
+      // used and leave no way back. The totals, on the contrary, answer for exactly what
+      // the filters match. The three queries go out at once.
+      const [movementPageResult, filterOptions, totals] = await Promise.all([
         this.movementQueryUseCase.getMovementsPage(filter, PageRequest.of(page, size)),
         this.movementQueryUseCase.getFilterOptions(),
+        this.movementQueryUseCase.getTotalsByCurrency(filter),
       ]);
       options = { entities: filterOptions.bankEntityIds, currencies: filterOptions.currencies };
 
@@ -74,12 +76,14 @@ export class MovementPageViewAdapter {
         );
       }
 
+      const mapper = new MovementViewMapper(translator);
       return {
         ok: true,
         filters,
         options,
         size,
-        page: new MovementViewMapper(translator).toPageView(movementPage),
+        page: mapper.toPageView(movementPage),
+        totals: mapper.toTotalsView(totals),
       };
     } catch (error) {
       return { ok: false, filters, options, size, error: this.advice.toErrorModel(error, translator) };

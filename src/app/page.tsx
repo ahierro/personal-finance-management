@@ -68,7 +68,7 @@ export default async function LedgerPage({ searchParams }: { searchParams: Promi
               )}
             </LedgerTableViewport>
 
-            {result.ok && <PaginationBar page={result.page} filters={result.filters} />}
+            {result.ok && <PaginationBar page={result.page} filters={result.filters} totals={result.totals} />}
           </LedgerShell>
         </ColumnPreferencesProvider>
       </MovementLedgerProvider>

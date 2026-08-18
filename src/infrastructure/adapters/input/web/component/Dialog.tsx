@@ -9,6 +9,9 @@ import styles from '@/infrastructure/adapters/input/web/component/Dialog.module.
 const FOCUSABLE =
   'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
+/** The subset the focus prefers to start on: controls that take a value, not commands. */
+const TYPABLE = 'input:not([disabled]), select:not([disabled]), textarea:not([disabled])';
+
 interface DialogProps {
   readonly title: string;
   readonly subtitle?: string;
@@ -29,10 +32,12 @@ export function Dialog({ title, subtitle, narrow, onClose, children, footer }: D
     const overflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
 
-    // Focus starts on the first field of the content, not on the close cross. A dialog
-    // with no fields, such as a confirmation, falls back to the first safe control.
+    // Focus starts on the first field of the content, not on the close cross. Somewhere to
+    // type, specifically: a field may carry a button beside it — the one that drops the
+    // calendar open — and landing on that would answer a key press by opening a popover.
+    // A dialog with no fields, such as a confirmation, falls back to the first safe control.
     const content = panelRef.current?.querySelector(`.${styles.body}`);
-    const firstField = content?.querySelector<HTMLElement>(FOCUSABLE);
+    const firstField = content?.querySelector<HTMLElement>(TYPABLE) ?? content?.querySelector<HTMLElement>(FOCUSABLE);
     (firstField ?? panelRef.current?.querySelector<HTMLElement>(FOCUSABLE))?.focus();
 
     return () => {

@@ -79,7 +79,6 @@ export function MovementTable({
             <td className={styles.cell} aria-hidden="true" />
             <td data-column="date" className={`${styles.cell} ${styles.cellDate} mono`}>
               {movement.date}
-              <span className={styles.cellTime}>{movement.time}</span>
             </td>
             <td
               data-column="description"

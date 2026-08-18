@@ -4,7 +4,11 @@ import { Fragment, type ReactNode } from 'react';
 
 import { PAGE_SIZE_OPTIONS } from '@/domain/entity/PageRequest';
 import { buildLedgerHref } from '@/infrastructure/adapters/input/web/view/MovementSearchParams';
-import type { FiltersView, MovementPageView } from '@/infrastructure/adapters/input/web/view/MovementView';
+import type {
+  CurrencyTotalView,
+  FiltersView,
+  MovementPageView,
+} from '@/infrastructure/adapters/input/web/view/MovementView';
 import { formatInteger } from '@/infrastructure/i18n/Translator';
 import { ChevronLeftIcon, ChevronRightIcon } from '@/infrastructure/adapters/input/web/component/Icon';
 import { useLedger } from '@/infrastructure/adapters/input/web/component/MovementLedgerProvider';
@@ -47,13 +51,15 @@ function visiblePages(current: number, total: number): Array<number | 'gap'> {
 interface PaginationBarProps {
   readonly page: MovementPageView;
   readonly filters: FiltersView;
+  /** What the filtered movements add up to, one entry per currency. */
+  readonly totals: readonly CurrencyTotalView[];
 }
 
 /**
  * All the pagination is resolved in MongoDB: each button changes the URL and the server
  * returns only the records belonging to that page.
  */
-export function PaginationBar({ page, filters }: PaginationBarProps) {
+export function PaginationBar({ page, filters, totals }: PaginationBarProps) {
   const { t } = useTranslation();
   const { navigate, navigating } = useLedger();
   const totalPages = Math.max(page.totalPages, 1);
@@ -76,6 +82,31 @@ export function PaginationBar({ page, filters }: PaginationBarProps) {
                 )),
               )}
         </span>
+
+        {/* The sums answer for the whole filtered set, so they sit next to the record
+            range rather than under the column: what they total is what that range counts,
+            and the figure holds still while the pages are walked. */}
+        {totals.length > 0 && (
+          <div className={styles.footTotals} aria-label={t('total.label')}>
+            <span className={styles.footTotalsLabel}>{t('total.short')}</span>
+            {totals.map((total) => (
+              <span
+                key={total.currency}
+                className={styles.footTotal}
+                title={t('total.detail', [total.currency, total.amountDisplay, total.countDisplay])}
+              >
+                <span className={`${styles.footTotalCurrency} mono`}>{total.currency}</span>
+                <span
+                  className={`${styles.footTotalValue} ${
+                    total.negative ? styles.amountDebit : styles.amountCredit
+                  } mono`}
+                >
+                  {total.amountDisplay}
+                </span>
+              </span>
+            ))}
+          </div>
+        )}
 
         <span className={styles.footSpacer} />
 

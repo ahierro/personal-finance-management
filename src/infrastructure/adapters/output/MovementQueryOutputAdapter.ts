@@ -5,6 +5,7 @@ import type { Movement } from '@/domain/entity/Movement';
 import type { MovementFilter } from '@/domain/entity/MovementFilter';
 import type { MovementFilterOptions } from '@/domain/entity/MovementFilterOptions';
 import { MovementPage } from '@/domain/entity/MovementPage';
+import type { MovementTotal } from '@/domain/entity/MovementTotal';
 import type { PageRequest } from '@/domain/entity/PageRequest';
 import { MovementNotFoundException } from '@/domain/exception/MovementNotFoundException';
 import type { MovementDboMapper } from '@/infrastructure/adapters/output/mapper/MovementDboMapper';
@@ -37,6 +38,12 @@ export class MovementQueryOutputAdapter implements MovementQueryOutputPort {
     ]);
     const movements = entities.map((entity) => this.movementDboMapper.toDomain(entity));
     return MovementPage.of(movements, totalElements, pageRequest.page, pageRequest.size);
+  }
+
+  async getTotalsByCurrency(filter: MovementFilter): Promise<readonly MovementTotal[]> {
+    const dboFilter = this.movementDboMapper.toDboFilter(filter);
+    const documents = await this.movementMongoRepository.aggregateTotalsByCurrency(dboFilter);
+    return this.movementDboMapper.toTotals(documents);
   }
 
   async getFilterOptions(): Promise<MovementFilterOptions> {

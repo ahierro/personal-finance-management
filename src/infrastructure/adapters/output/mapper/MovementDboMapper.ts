@@ -3,7 +3,8 @@ import { Decimal128, type Filter } from 'mongodb';
 
 import type { Movement } from '@/domain/entity/Movement';
 import type { MovementFilter } from '@/domain/entity/MovementFilter';
-import type { MovementEntity } from '@/infrastructure/adapters/output/data/MovementEntity';
+import type { MovementTotal } from '@/domain/entity/MovementTotal';
+import type { CurrencyTotalDocument, MovementEntity } from '@/infrastructure/adapters/output/data/MovementEntity';
 
 /** Document without `_id`: MongoDB generates it on insert and it is not replaced on update. */
 export type MovementDocument = Omit<MovementEntity, '_id'>;
@@ -52,6 +53,21 @@ export class MovementDboMapper {
       receiptId: entity.receiptId ?? null,
       bankEntityId: entity.bankEntityId ?? '',
     };
+  }
+
+  /**
+   * The aggregation rows as the domain wants them: sorted by currency, with the sum kept
+   * as exact text. `localeCompare` puts accented codes where a reader expects them, the
+   * same order the filter combos use.
+   */
+  toTotals(documents: readonly CurrencyTotalDocument[]): MovementTotal[] {
+    return documents
+      .map((document) => ({
+        currency: document._id ?? '',
+        amount: readAmount(document.total),
+        count: document.count,
+      }))
+      .sort((left, right) => left.currency.localeCompare(right.currency));
   }
 
   /**

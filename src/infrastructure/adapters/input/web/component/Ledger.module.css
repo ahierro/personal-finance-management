@@ -596,7 +596,7 @@
    reader has never dragged still measures what the design intended. The properties are
    set on the scrolling box by LedgerTableViewport. */
 .colDate {
-  width: var(--col-date-width, 172px);
+  width: var(--col-date-width, 124px);
 }
 
 .colDescription {
@@ -694,12 +694,6 @@
 
 .cellDate {
   color: var(--text);
-}
-
-.cellTime {
-  margin-left: 7px;
-  color: var(--text-low);
-  font-size: 12px;
 }
 
 .cellDescription {
@@ -871,6 +865,46 @@
   color: var(--text);
 }
 
+/* The totals, one chip per currency, reading in the same monospaced figures and the same
+   debit and credit colours as the amount column they add up. */
+/* Aligned on the baseline, not on the centre of each box: the label, the currency code
+   and the figure are three different sizes in two different families, and centring their
+   line boxes would leave each text resting at a slightly different height. */
+.footTotals {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding-left: 12px;
+  border-left: 1px solid var(--hairline);
+}
+
+.footTotalsLabel {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-low);
+  white-space: nowrap;
+}
+
+.footTotal {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.footTotalCurrency {
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  color: var(--text-low);
+}
+
+.footTotalValue {
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
 .footSpacer {
   flex: 1;
 }
@@ -993,6 +1027,14 @@
 
   .footRange {
     flex-basis: 100%;
+  }
+
+  /* The totals take a row of their own, and the rule that separated them from the range
+     goes with the row they shared. */
+  .footTotals {
+    flex-basis: 100%;
+    padding-left: 0;
+    border-left: 0;
   }
 
   .sizeLabel {

@@ -171,6 +171,14 @@
   color: var(--text-low);
 }
 
+/* Date and time on one line: the calendar takes whatever room is left and the clock its
+   own fixed track, so the two boxes do not resize each other as the values change. */
+.dateTimeRow {
+  display: grid;
+  grid-template-columns: 1fr 132px;
+  gap: 8px;
+}
+
 .input:focus {
   outline: none;
   border-color: var(--brass-line);

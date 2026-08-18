@@ -7,11 +7,11 @@ import type { ErrorModel } from '@/domain/entity/ErrorModel';
  */
 export interface MovementView {
   readonly id: string;
-  /** Formatted with the current locale's date pattern. */
+  /** Formatted with the current locale's date pattern. The listing shows this alone. */
   readonly date: string;
-  /** Formatted with the current locale's time pattern. */
+  /** Formatted with the current locale's time pattern, for the form and the confirmations. */
   readonly time: string;
-  /** `2026-08-14T09:41`, the shape a `<input type="datetime-local">` expects. */
+  /** `2026-08-14T09:41`, the date and the time the form edits. */
   readonly dateTimeInput: string;
   readonly description: string;
   readonly currency: string;
@@ -35,6 +35,19 @@ export interface FiltersView {
   readonly entity: string;
   /** Currency picked in the combo, or empty for all of them. */
   readonly currency: string;
+}
+
+/**
+ * A currency total ready to paint. It covers every movement the filters match, not the
+ * page on screen, so walking the pages leaves the figure where it is.
+ */
+export interface CurrencyTotalView {
+  readonly currency: string;
+  /** Value formatted for reading: `-1.234,56`. */
+  readonly amountDisplay: string;
+  /** How many movements were added up, already grouped for reading. */
+  readonly countDisplay: string;
+  readonly negative: boolean;
 }
 
 /** What the two combos offer, read from the collection on every render. */
@@ -68,6 +81,8 @@ export type MovementPageResult =
       readonly options: FilterOptionsView;
       readonly size: number;
       readonly page: MovementPageView;
+      /** One entry per currency present in the filtered set; empty when nothing matches. */
+      readonly totals: readonly CurrencyTotalView[];
     }
   | {
       readonly ok: false;
